@@ -7,4 +7,10 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  esbuild: {
+    keepNames: true,
+  },
+  build: {
+    minify: false
+  }
 });
