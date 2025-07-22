@@ -12,6 +12,7 @@
   "dependencies": {
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@mui/x-charts": "^8.9.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",

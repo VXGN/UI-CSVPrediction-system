@@ -86,6 +86,6 @@ module.exports = {
 ---
 
 ## Useful Links
-- [MUI x] (https://mui.com/x/introduction/installation/)
+- [MUI x](https://mui.com/x/introduction/installation/)
 - [Tailwind CSS Docs](https://tailwindcss.com/docs/installation)
 - [Vite Docs](https://vitejs.dev/guide/)
