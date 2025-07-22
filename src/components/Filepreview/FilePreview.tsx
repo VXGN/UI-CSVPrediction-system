@@ -37,7 +37,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
   const yValues = chartData.map(d => d?.y);
 
   return (
-    <div className="w-full max-w-4xl mt-8 animate-fade-in-up animation-delay-300">
+    <div className="w-full max-w-4xl mt-8">
       <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
         <h2 className="text-2xl font-semibold mb-6 text-center text-white flex items-center justify-center space-x-3">
           <BarChart3 className="h-7 w-7 text-blue-400" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart } from '@mui/x-charts/LineChart';
+import { LineChart } from '@mui/x-charts';
 
 interface CSVLineChartProps {
   xValues: (string | number)[];
