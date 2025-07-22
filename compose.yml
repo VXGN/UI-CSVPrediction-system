@@ -1,8 +1,12 @@
 version: "3.9"
 
 services:
-  vite-app:
-    build: .
+  vite-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
+      - "8282:80"
       - "3000:80"
+    container_name: vite-ui-app
     restart: unless-stopped
