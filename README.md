@@ -1,5 +1,7 @@
 # new-frontend
 
+![UI Preview](preview/ui.png)
+
 A Vite + React + Tailwind CSS project.
 
 ## Quick Start
