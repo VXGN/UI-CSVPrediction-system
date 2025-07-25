@@ -5,8 +5,24 @@ import Footer from './components/Footer';
 import { useFileUpload } from './hooks/useFileUpload';
 import Body from './components/Body';
 import Hero from './components/Hero';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import AuthPage from './pages/AuthPage';
+import { ThemeProvider } from './components/theme-provider';
 
-function App() {
+function MainLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-black animate-fade-in">
+      <Header />
+      <main className="pt-40 min-h-screen flex flex-col items-center justify-center px-16 py-22 ">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function AppRoutes() {
+  const location = useLocation();
   const {
     dragActive,
     uploadedFile,
@@ -18,40 +34,47 @@ function App() {
     formatFileSize
   } = useFileUpload();
 
+  if (location.pathname === "/auth") {
+    return <AuthPage />;
+  }
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-black animate-fade-in">
-      <Header />
-      {/* Main Content */}
-      <main className="pt-40 min-h-screen flex flex-col items-center justify-center px-16 py-22 ">
-        <div className="w-90">
-          <Hero />
-          <div className="flex flex-col lg:flex-row items-start justify-center gap-8">
-            {/* Main Content Area */}
-            <div className="flex flex-col items-center space-y-20 flex-1">
-              {uploadedFile && (
-                <FilePreview
-                  uploadedFile={uploadedFile}
-                  formatFileSize={formatFileSize}
-                />
-              )}
-              <FileUpload
-                dragActive={dragActive}
+    <MainLayout>
+      <div className="w-90">
+        <Hero />
+        <div className="flex flex-col lg:flex-row items-start justify-center gap-8">
+          <div className="flex flex-col items-center space-y-20 flex-1">
+            {uploadedFile && (
+              <FilePreview
                 uploadedFile={uploadedFile}
-                error={error}
-                onDrag={handleDrag}
-                onDrop={handleDrop}
-                onFileInput={handleFileInput}
-                onRemoveFile={removeFile}
                 formatFileSize={formatFileSize}
               />
-              {<Body />}
-            </div>
+            )}
+            <FileUpload
+              dragActive={dragActive}
+              uploadedFile={uploadedFile}
+              error={error}
+              onDrag={handleDrag}
+              onDrop={handleDrop}
+              onFileInput={handleFileInput}
+              onRemoveFile={removeFile}
+              formatFileSize={formatFileSize}
+            />
+            {<Body />}
           </div>
         </div>
-        <Footer />
-      </main>
-    </div>
+      </div>
+    </MainLayout>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <ThemeProvider defaultTheme="dark" forcedTheme="dark">
+      <Router>
+        <Routes>
+          <Route path="/*" element={<AppRoutes />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
+  );
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUpIcon, FileLineChart,  } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
@@ -19,12 +20,12 @@ const Header: React.FC = () => {
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-2">
-            <div className="text-sm text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700/50 hover:text-gray-200 hover:scale-105 transition-transform duration-300">
+            <Link to="/auth" className="text-sm text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700/50 hover:text-gray-200 hover:scale-105 transition-transform duration-300">
               Register
-            </div>
-            <div className="text-sm text-gray-300 bg-green-400/45 px-3 py-1 rounded-full border border-gray-700/50 hover:bg-green-500 hover:scale-105 transition-transform duration-300">
+            </Link>
+            <Link to="/auth" className="text-sm text-gray-300 bg-green-400/45 px-3 py-1 rounded-full border border-gray-700/50 hover:bg-green-500 hover:scale-105 transition-transform duration-300">
               Login
-            </div>
+            </Link>
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           </div>
         </div>
