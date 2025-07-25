@@ -1,275 +1,363 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { gsap } from "gsap"
-import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
-import { Droplets, Lock, Mail, User, Eye, EyeOff } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import usersData from "./users.json"
+import React, { useState, useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Droplets, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import initialUsers from "./users.json";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Helper function untuk mendapatkan data pengguna dari localStorage atau data awal
+const getInitialUsers = () => {
+  try {
+    const localData = localStorage.getItem("users");
+    return localData ? JSON.parse(localData) : initialUsers;
+  } catch (error) {
+    console.error("Failed to parse users from localStorage", error);
+    return initialUsers;
+  }
+};
+
+// Varian Framer Motion untuk transisi form
+const formVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 200, damping: 25 },
+  },
+  exit: {
+    opacity: 0,
+    y: -30,
+    scale: 0.95,
+    transition: { duration: 0.4, ease: "easeInOut" as const },
+  },
+};
+
+type AnimatedInputProps = {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  type?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+  showToggle?: boolean;
+  togglePasswordVisibility?: () => void;
+  showPassword?: boolean;
+};
+
+const AnimatedInput = ({
+  id,
+  label,
+  icon: Icon,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  showToggle,
+  togglePasswordVisibility,
+  showPassword,
+}: AnimatedInputProps) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+    setIsFocused(true);
+    onFocus(e);
+  };
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+    setIsFocused(false);
+    onBlur(e);
+  };
+
+  return (
+    <div className="space-y-3">
+      <Label htmlFor={id} className="text-white/90 text-sm font-medium">
+        {label}
+      </Label>
+      <div className="relative group">
+        <motion.div
+          animate={{ x: isFocused ? -2 : 0, scale: isFocused ? 1.1 : 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 10 }}
+          className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa]"
+        >
+          <Icon className="h-5 w-5" />
+        </motion.div>
+        <Input
+          id={id}
+          type={showToggle && !showPassword ? "password" : type}
+          placeholder={placeholder}
+          className="pl-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          value={value}
+          onChange={onChange}
+        />
+        {showToggle && (
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute right-4 top-3.5 text-[#a78bfa] hover:text-[#c4b5fd] transition-colors duration-200"
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function AuthPage() {
-  const [mounted, setMounted] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const loginFormRef = useRef(null)
-  const registerFormRef = useRef(null)
-  const logoRef = useRef(null)
-  const backgroundRef = useRef(null)
-  const cursorGlowRef = useRef(null)
-  const containerRef = useRef(null)
+  const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
 
-  // State untuk form
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [registerName, setRegisterName] = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerConfirm, setRegisterConfirm] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  const [users, setUsers] = useState(() => {
-    // Cek localStorage dulu, jika ada pakai itu, jika tidak pakai usersData
-    const local = localStorage.getItem("users");
-    return local ? JSON.parse(local) : usersData;
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [registerForm, setRegisterForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
-  // Simpan ke localStorage setiap users berubah
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [users, setUsers] = useState(getInitialUsers);
+  const navigate = useNavigate();
+
+  const logoRef = useRef(null);
+  const backgroundRef = useRef(null);
+  const cursorGlowRef = useRef(null);
+  const containerRef = useRef(null);
+  const waveRef1 = useRef(null);
+  const waveRef2 = useRef(null);
+  const waveRef3 = useRef(null);
+
   useEffect(() => {
     localStorage.setItem("users", JSON.stringify(users));
   }, [users]);
 
-  const navigate = useNavigate();
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoginForm({ ...loginForm, [e.target.id]: e.target.value });
+  };
+  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRegisterForm({ ...registerForm, [e.target.id]: e.target.value });
+  };
 
-  // Handler login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(""); setSuccessMsg("");
-    const user = users.find((u: any) => u.email === loginEmail && u.password === loginPassword);
+    setMessage({ type: "", text: "" });
+    const user = users.find(
+      (u: any) => u.email === loginForm.email && u.password === loginForm.password,
+    );
     if (user) {
-      setSuccessMsg("Login successful! Welcome, " + user.name);
+      setMessage({ type: "success", text: `Login successful! Welcome, ${user.name}` });
       localStorage.setItem("session", JSON.stringify(user));
-      setTimeout(() => navigate("/"), 1000);
+      setTimeout(() => navigate("/"), 1500);
     } else {
-      setErrorMsg("Invalid email or password");
+      setMessage({ type: "error", text: "Invalid email or password" });
     }
   };
 
-  // Handler register
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(""); setSuccessMsg("");
-    if (!registerName || !registerEmail || !registerPassword || !registerConfirm) {
-      setErrorMsg("Please fill all fields"); return;
+    setMessage({ type: "", text: "" });
+    const { name, email, password, confirmPassword } = registerForm;
+    if (!name || !email || !password || !confirmPassword) {
+      setMessage({ type: "error", text: "Please fill all fields" });
+      return;
     }
-    if (registerPassword !== registerConfirm) {
-      setErrorMsg("Passwords do not match"); return;
+    if (password !== confirmPassword) {
+      setMessage({ type: "error", text: "Passwords do not match" });
+      return;
     }
-    if (users.find((u: any) => u.email === registerEmail)) {
-      setErrorMsg("Email already registered"); return;
+    if (users.find((u: any) => u.email === email)) {
+      setMessage({ type: "error", text: "Email already registered" });
+      return;
     }
-    const newUser = {
-      id: users.length + 1,
-      name: registerName,
-      email: registerEmail,
-      password: registerPassword
-    };
+    const newUser = { id: users.length + 1, name, email, password };
     setUsers([...users, newUser]);
-    setSuccessMsg("Registration successful! You can now login.");
-    setRegisterName(""); setRegisterEmail(""); setRegisterPassword(""); setRegisterConfirm("");
+    setMessage({
+      type: "success",
+      text: "Registration successful! You can now login.",
+    });
+    setRegisterForm({ name: "", email: "", password: "", confirmPassword: "" });
   };
+  
+  // Fungsi handleInputFocus dan handleInputBlur sekarang kosong
+  const handleInputFocus = () => {};
+  const handleInputBlur = () => {};
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
+
+    // Animasi gelombang dengan GSAP
+    const waveAnimation = (ref: gsap.TweenTarget, duration: number, delay: number) => {
+      gsap.to(ref, {
+        duration: duration,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        x: "random(-100, 100)",
+        y: "random(-100, 100)",
+        rotation: "random(0, 360)",
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        delay: delay,
+      });
+    };
+
+    waveAnimation(waveRef1.current, 15, 0);
+    waveAnimation(waveRef2.current, 18, 5);
+    waveAnimation(waveRef3.current, 20, 10);
+
     const handleMouseMove = (e: MouseEvent) => {
       if (cursorGlowRef.current) {
         gsap.to(cursorGlowRef.current, {
           left: e.clientX,
           top: e.clientY,
-          duration: 0.3,
-          ease: "power2.out",
-        })
+          duration: 1.2,
+          ease: "power4.out",
+        });
       }
-    }
-    document.addEventListener("mousemove", handleMouseMove)
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+
     gsap.to(backgroundRef.current, {
-      duration: 25,
+      duration: 50,
       backgroundPosition: "100% 100%",
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut",
-    })
-    const logoTimeline = gsap.timeline()
+    });
+
+    const logoTimeline = gsap.timeline();
     logoTimeline
       .from(logoRef.current, {
         y: -100,
         opacity: 0,
         scale: 0.5,
         rotation: -180,
-        duration: 1.5,
+        duration: 2,
         ease: "elastic.out(1, 0.3)",
       })
       .to(
         logoRef.current,
         {
           textShadow: "0 0 20px #a78bfa, 0 0 40px #7f5af0, 0 0 60px #c4b5fd",
-          duration: 0.5,
+          duration: 0.8,
           ease: "power2.out",
         },
-        "-=0.5",
-      )
+        "-=1",
+      );
+
     gsap.from(containerRef.current, {
       y: 50,
       opacity: 0,
       scale: 0.9,
-      duration: 1,
-      delay: 0.8,
+      duration: 1.5,
+      delay: 1,
       ease: "power3.out",
-    })
-    const floatingElements = document.querySelectorAll(".floating-element")
-    floatingElements.forEach((element, index) => {
-      gsap.to(element, {
-        y: "random(-30, 30)",
-        x: "random(-20, 20)",
-        rotation: "random(-15, 15)",
-        duration: "random(3, 6)",
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        delay: index * 0.2,
-      })
-    })
+    });
+
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-    }
-  }, [])
-
-  const handleTabChange = (value: string) => {
-    const timeline = gsap.timeline()
-    if (value === "login") {
-      timeline
-        .to(registerFormRef.current, {
-          y: -20,
-          opacity: 0,
-          duration: 0.3,
-          ease: "power2.in",
-        })
-        .fromTo(
-          loginFormRef.current,
-          { y: 20, opacity: 0, scale: 0.95 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
-        )
-    } else {
-      timeline
-        .to(loginFormRef.current, {
-          y: -20,
-          opacity: 0,
-          duration: 0.3,
-          ease: "power2.in",
-        })
-        .fromTo(
-          registerFormRef.current,
-          { y: 20, opacity: 0, scale: 0.95 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
-        )
-    }
-  }
-
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    gsap.to(e.target, {
-      scale: 1.02,
-      duration: 0.2,
-      ease: "power2.out",
-    })
-    gsap.to(e.target.parentElement, {
-      boxShadow: "0 0 20px rgba(127,90,240,0.3)",
-      duration: 0.2,
-    })
-  }
-
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    gsap.to(e.target, {
-      scale: 1,
-      duration: 0.2,
-      ease: "power2.out",
-    })
-    gsap.to(e.target.parentElement, {
-      boxShadow: "none",
-      duration: 0.2,
-    })
-  }
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
 
   const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.target, {
+    gsap.to(e.currentTarget, {
       scale: 1.05,
       boxShadow: "0 10px 30px rgba(127,90,240,0.25)",
       duration: 0.3,
       ease: "power2.out",
-    })
-  }
+    });
+  };
 
   const handleButtonLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.target, {
+    gsap.to(e.currentTarget, {
       scale: 1,
       boxShadow: "0 4px 15px rgba(127,90,240,0.18)",
       duration: 0.3,
       ease: "power2.out",
-    })
-  }
+    });
+  };
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <div
       ref={backgroundRef}
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1a1440] via-[#7f5af0] via-60% to-[#23235a] bg-[length:200%_200%] relative overflow-hidden"
     >
-      
+      <style>{`
+        @keyframes glowing-border {
+          0% { box-shadow: 0 0 5px #a78bfa; }
+          50% { box-shadow: 0 0 20px #7f5af0, 0 0 30px #c4b5fd; }
+          100% { box-shadow: 0 0 5px #a78bfa; }
+        }
+        .btn-glow {
+          position: relative;
+          z-index: 10;
+          transition: all 0.3s ease-out;
+        }
+        .btn-glow:hover {
+          animation: glowing-border 1.5s infinite ease-in-out;
+        }
+        .wave-background {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.3;
+          z-index: 0;
+        }
+      `}</style>
+
+      {/* Glow Kursor yang melayang */}
       <div
         ref={cursorGlowRef}
         className="fixed w-96 h-96 pointer-events-none z-50 mix-blend-screen"
         style={{
-          background:
-            "radial-gradient(circle, rgba(127,90,240,0.18) 0%, rgba(167,139,250,0.12) 30%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(127,90,240,0.18) 0%, rgba(167,139,250,0.12) 30%, transparent 70%)",
           transform: "translate(-50%, -50%)",
           filter: "blur(32px)",
           left: 0,
           top: 0,
         }}
       />
-      
+
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="floating-element absolute rounded-full bg-gradient-to-r from-[#7f5af0] to-[#a78bfa] opacity-20"
-            style={{
-              width: `${Math.random() * 300 + 50}px`,
-              height: `${Math.random() * 300 + 50}px`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              filter: "blur(70px)",
-            }}
-          />
-        ))}
-        
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={`glow-${i}`}
-            className="absolute w-2 h-2 bg-[#a78bfa] rounded-full opacity-70"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              boxShadow: "0 0 12px #a78bfa, 0 0 24px #7f5af0, 0 0 36px #c4b5fd",
-              animation: `twinkle ${Math.random() * 3 + 2}s infinite ease-in-out ${Math.random() * 2}s`,
-            }}
-          />
-        ))}
+        {/* Animasi Latar Belakang Gelombang Modern */}
+        <div
+          ref={waveRef1}
+          className="wave-background w-[600px] h-[600px] bg-gradient-to-br from-[#a78bfa] to-[#7f5af0]"
+          style={{ top: "10%", left: "15%" }}
+        />
+        <div
+          ref={waveRef2}
+          className="wave-background w-[700px] h-[700px] bg-gradient-to-br from-[#7f5af0] to-[#c4b5fd]"
+          style={{ bottom: "10%", right: "20%" }}
+        />
+        <div
+          ref={waveRef3}
+          className="wave-background w-[500px] h-[500px] bg-gradient-to-br from-[#c4b5fd] to-[#a78bfa]"
+          style={{ top: "50%", left: "70%" }}
+        />
       </div>
-      <div ref={containerRef} className="w-full max-w-md z-10">
+
+      <div ref={containerRef} className="w-full max-w-md z-10 relative">
         <div className="flex justify-center mb-8">
           <div ref={logoRef} className="flex items-center gap-3 text-4xl font-bold text-white">
             <Droplets className="h-12 w-12 text-[#a78bfa] drop-shadow-[0_0_18px_rgba(167,139,250,0.8)]" />
@@ -278,10 +366,14 @@ export default function AuthPage() {
             </span>
           </div>
         </div>
+
         <div className="bg-[#1a1440]/80 backdrop-blur-2xl rounded-3xl border border-[#a78bfa]/20 shadow-2xl p-8 relative overflow-hidden">
-          
           <div className="absolute inset-0 bg-gradient-to-br from-[#a78bfa]/10 via-transparent to-[#7f5af0]/10 rounded-3xl" />
-          <Tabs defaultValue="login" onValueChange={handleTabChange} className="w-full relative z-10">
+          <Tabs
+            defaultValue="login"
+            onValueChange={setActiveTab}
+            className="w-full relative z-10"
+          >
             <TabsList className="flex w-full mb-10 bg-[#23235a]/80 border border-[#a78bfa]/20 rounded-2xl overflow-hidden gap-4 p-2 transition-all duration-300 shadow-lg">
               <TabsTrigger
                 value="login"
@@ -296,183 +388,173 @@ export default function AuthPage() {
                 Register
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="login">
-              <form ref={loginFormRef} className="space-y-6" onSubmit={handleLogin}>
-                {errorMsg && <div className="text-red-400 text-sm mb-2">{errorMsg}</div>}
-                {successMsg && <div className="text-green-400 text-sm mb-2">{successMsg}</div>}
-                <div className="space-y-3">
-                  <Label htmlFor="email" className="text-white/90 text-sm font-medium">
-                    Email Address
-                  </Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa] transition-all duration-200 group-focus-within:scale-110" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      className="pl-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
-                      onFocus={handleInputFocus}
-                      onBlur={handleInputBlur}
-                      value={loginEmail}
-                      onChange={e => setLoginEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="password" className="text-white/90 text-sm font-medium">
-                      Password
-                    </Label>
-                    <button
-                      type="button"
-                      className="text-xs text-[#a78bfa] hover:text-[#c4b5fd] transition-colors duration-200 hover:underline"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa] transition-all duration-200 group-focus-within:scale-110" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="pl-12 pr-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
-                      onFocus={handleInputFocus}
-                      onBlur={handleInputBlur}
-                      value={loginPassword}
-                      onChange={e => setLoginPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-3.5 text-[#a78bfa] hover:text-[#c4b5fd] transition-colors duration-200"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-[#a78bfa] to-[#7f5af0] hover:from-[#7f5af0] hover:to-[#a78bfa] text-white font-semibold text-lg rounded-xl shadow-lg transition-all duration-300"
-                  onMouseEnter={handleButtonHover}
-                  onMouseLeave={handleButtonLeave}
+
+            <AnimatePresence mode="wait">
+              {activeTab === "login" ? (
+                <motion.div
+                  key="login-form"
+                  variants={formVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
                 >
-                  Sign In
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="register">
-              <form ref={registerFormRef} className="space-y-6" onSubmit={handleRegister}>
-                {errorMsg && <div className="text-red-400 text-sm mb-2">{errorMsg}</div>}
-                {successMsg && <div className="text-green-400 text-sm mb-2">{successMsg}</div>}
-                <div className="space-y-3">
-                  <Label htmlFor="register-name" className="text-white/90 text-sm font-medium">
-                    Full Name
-                  </Label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa] transition-all duration-200 group-focus-within:scale-110" />
-                    <Input
-                      id="register-name"
-                      placeholder="John Doe"
-                      className="pl-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
-                      onFocus={handleInputFocus}
-                      onBlur={handleInputBlur}
-                      value={registerName}
-                      onChange={e => setRegisterName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="register-email" className="text-white/90 text-sm font-medium">
-                    Email Address
-                  </Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa] transition-all duration-200 group-focus-within:scale-110" />
-                    <Input
-                      id="register-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      className="pl-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
-                      onFocus={handleInputFocus}
-                      onBlur={handleInputBlur}
-                      value={registerEmail}
-                      onChange={e => setRegisterEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="register-password" className="text-white/90 text-sm font-medium">
-                    Password
-                  </Label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa] transition-all duration-200 group-focus-within:scale-110" />
-                    <Input
-                      id="register-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="pl-12 pr-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
-                      onFocus={handleInputFocus}
-                      onBlur={handleInputBlur}
-                      value={registerPassword}
-                      onChange={e => setRegisterPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-3.5 text-[#a78bfa] hover:text-[#c4b5fd] transition-colors duration-200"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="register-confirm" className="text-white/90 text-sm font-medium">
-                    Confirm Password
-                  </Label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 h-5 w-5 text-[#a78bfa] transition-all duration-200 group-focus-within:scale-110" />
-                    <Input
-                      id="register-confirm"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="pl-12 pr-12 h-12 bg-black/40 border-white/20 focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-200"
-                      onFocus={handleInputFocus}
-                      onBlur={handleInputBlur}
-                      value={registerConfirm}
-                      onChange={e => setRegisterConfirm(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-3.5 text-[#a78bfa] hover:text-[#c4b5fd] transition-colors duration-200"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-[#a78bfa] to-[#7f5af0] hover:from-[#7f5af0] hover:to-[#a78bfa] text-white font-semibold text-lg rounded-xl shadow-lg transition-all duration-300"
-                  onMouseEnter={handleButtonHover}
-                  onMouseLeave={handleButtonLeave}
+                  <TabsContent value="login" forceMount className="mt-0">
+                    <form className="space-y-6" onSubmit={handleLogin}>
+                      {message.text && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`${
+                            message.type === "error" ? "text-red-400" : "text-green-400"
+                          } text-sm mb-2`}
+                        >
+                          {message.text}
+                        </motion.div>
+                      )}
+                      <AnimatedInput
+                        id="email"
+                        label="Email Address"
+                        icon={Mail}
+                        type="email"
+                        placeholder="your@email.com"
+                        value={loginForm.email}
+                        onChange={handleLoginChange}
+                        onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
+                      />
+
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="password" className="text-white/90 text-sm font-medium">
+                            Password
+                          </Label>
+                          <button
+                            type="button"
+                            className="text-xs text-[#a78bfa] hover:text-[#c4b5fd] transition-colors duration-200 hover:underline"
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
+                        <AnimatedInput
+                          id="password"
+                          label=""
+                          icon={Lock}
+                          placeholder="••••••••"
+                          value={loginForm.password}
+                          onChange={handleLoginChange}
+                          onFocus={handleInputFocus}
+                          onBlur={handleInputBlur}
+                          showToggle={true}
+                          showPassword={showPassword}
+                          togglePasswordVisibility={() => setShowPassword(!showPassword)}
+                        />
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="btn-glow w-full h-12 bg-gradient-to-r from-[#a78bfa] to-[#7f5af0] text-white font-semibold text-lg rounded-xl transition-all duration-300"
+                        onMouseEnter={handleButtonHover}
+                        onMouseLeave={handleButtonLeave}
+                      >
+                        Sign In
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="register-form"
+                  variants={formVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
                 >
-                  Create Account
-                </Button>
-                <p className="text-xs text-center text-white/60 mt-6 leading-relaxed">
-                  By registering, you agree to our{" "}
-                  <button className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
-                    Terms of Service
-                  </button>{" "}
-                  and{" "}
-                  <button className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
-                    Privacy Policy
-                  </button>
-                </p>
-              </form>
-            </TabsContent>
+                  <TabsContent value="register" forceMount className="mt-0">
+                    <form className="space-y-6" onSubmit={handleRegister}>
+                      {message.text && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`${
+                            message.type === "error" ? "text-red-400" : "text-green-400"
+                          } text-sm mb-2`}
+                        >
+                          {message.text}
+                        </motion.div>
+                      )}
+                      <AnimatedInput
+                        id="name"
+                        label="Full Name"
+                        icon={User}
+                        placeholder="John Doe"
+                        value={registerForm.name}
+                        onChange={handleRegisterChange}
+                        onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
+                      />
+                      <AnimatedInput
+                        id="email"
+                        label="Email Address"
+                        icon={Mail}
+                        type="email"
+                        placeholder="your@email.com"
+                        value={registerForm.email}
+                        onChange={handleRegisterChange}
+                        onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
+                      />
+                      <AnimatedInput
+                        id="password"
+                        label="Password"
+                        icon={Lock}
+                        placeholder="••••••••"
+                        value={registerForm.password}
+                        onChange={handleRegisterChange}
+                        onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
+                        showToggle={true}
+                        showPassword={showPassword}
+                        togglePasswordVisibility={() => setShowPassword(!showPassword)}
+                      />
+                      <AnimatedInput
+                        id="confirmPassword"
+                        label="Confirm Password"
+                        icon={Lock}
+                        placeholder="••••••••"
+                        value={registerForm.confirmPassword}
+                        onChange={handleRegisterChange}
+                        onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
+                        showToggle={true}
+                        showPassword={showConfirmPassword}
+                        togglePasswordVisibility={() => setShowConfirmPassword(!showConfirmPassword)}
+                      />
+                      <Button
+                        type="submit"
+                        className="btn-glow w-full h-12 bg-gradient-to-r from-[#a78bfa] to-[#7f5af0] text-white font-semibold text-lg rounded-xl transition-all duration-300"
+                        onMouseEnter={handleButtonHover}
+                        onMouseLeave={handleButtonLeave}
+                      >
+                        Create Account
+                      </Button>
+                      <p className="text-xs text-center text-white/60 mt-6 leading-relaxed">
+                        By registering, you agree to our{" "}
+                        <button className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
+                          Terms of Service
+                        </button>{" "}
+                        and{" "}
+                        <button className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
+                          Privacy Policy
+                        </button>
+                      </p>
+                    </form>
+                  </TabsContent>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Tabs>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}
