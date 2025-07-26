@@ -1,61 +1,147 @@
 import React from 'react';
-import { Info, HelpCircle, Users } from 'lucide-react';
+import { Info, HelpCircle, Users, Github } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const teamMembers = [
+  { name: 'Fanndev', github: 'https://github.com/Fanndev', role: 'Frontend Developer' },
+  { name: 'VXGN', github: 'https://github.com/vxgn', role: 'Backend Engineer' },
+  { name: 'Zerofound', github: 'https://github.com/zerofound', role: 'Data Scientist' },
+];
+
+const cardVariants = {
+  initial: { opacity: 0, y: 50, scale: 0.95 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: "easeOut" } },
+  hover: { scale: 1.02, boxShadow: "0 10px 20px rgba(0,0,0,0.2)" },
+};
+
+const iconVariants = {
+  hover: { scale: 1.1, rotate: 10, transition: { type: "spring", stiffness: 400 } },
+};
 
 const Body: React.FC = () => {
   return (
     <div className="space-y-9">
-      <div className="flex flex-row space-x-6 animate-slide-in-right">
+      
+      {/* Description & Help Section */}
+      <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
+        
+        {/* Description Card */}
+        <motion.div
+          className="flex-1 bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl"
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          transition={{ delay: 0 }}
+        >
+          <div className="flex items-center space-x-3 mb-4">
+            <motion.div variants={iconVariants} whileHover="hover">
+              <Info className="h-6 w-6 text-blue-400" />
+            </motion.div>
+            <h3 className="text-lg font-semibold text-white">About</h3>
+          </div>
+          <p className="text-gray-300 leading-relaxed">
+            A powerful CSV file System prediction using python and tensorflow as the main engine
+          </p>
+        </motion.div>
 
-      {/* Description */}
-      <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex items-center space-x-3 mb-4">
-          <Info className="h-6 w-6 text-blue-400" />
-          <h3 className="text-lg font-semibold text-white">About</h3>
-        </div>
-        <p className="text-gray-300 leading-relaxed">
-          A powerful CSV file System prediction using python and tensorflow as the main engine
-        </p>
-      </div>
-    
-      {/* Help */}
-      <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex items-center space-x-3 mb-4">
-          <HelpCircle className="h-6 w-6 text-green-400" />
-          <h3 className="text-lg font-semibold text-white">How to Use</h3>
-        </div>
-        <ul className="space-y-2 text-gray-300">
-          <li className="flex items-start space-x-2">
-            <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
-            <span>Drag and drop your CSV file or click to browse</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
-            <span>Preview your data instantly</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></span>
-            <span>Analyze file statistics and content</span>
-          </li>
-        </ul>
-      </div>
+        {/* How to Use Card */}
+        <motion.div
+          className="flex-1 bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl"
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          transition={{ delay: 0.1 }}
+        >
+          <div className="flex items-center space-x-3 mb-4">
+            <motion.div variants={iconVariants} whileHover="hover">
+              <HelpCircle className="h-6 w-6 text-green-400" />
+            </motion.div>
+            <h3 className="text-lg font-semibold text-white">How to Use</h3>
+          </div>
+          <ul className="space-y-2 text-gray-300">
+            <li className="flex items-start space-x-2">
+              <span className="w-2.5 h-2.5 bg-blue-400 rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-125"></span>
+              <span>Drag and drop your CSV file or click to browse</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="w-2.5 h-2.5 bg-green-400 rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-125"></span>
+              <span>Preview your data instantly</span>
+            </li>
+            <li className="flex items-start space-x-2">
+              <span className="w-2.5 h-2.5 bg-purple-400 rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-125"></span>
+              <span>Analyze file statistics and content</span>
+            </li>
+          </ul>
+        </motion.div>
       </div>
       
-      {/* Team */}
-      <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex items-center space-x-3 mb-4">
-          <Users className="h-6 w-6 text-purple-400" />
+      {/* Our Team Section */}
+      <motion.div
+        className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl"
+        variants={cardVariants}
+        initial="initial"
+        animate="animate"
+        whileHover="hover"
+        transition={{ delay: 0.2 }}
+      >
+        <div className="flex items-center space-x-3 mb-6">
+          <motion.div variants={iconVariants} whileHover="hover">
+            <Users className="h-6 w-6 text-purple-400" />
+          </motion.div>
           <h3 className="text-lg font-semibold text-white">Our Team</h3>
         </div>
-        <div className="flex flex-row space-x-3">
-          {['Fanndev', 'VXGN', 'Zerofound'].map((member, index) => (
-            <div key={member} className="flex items-center space-x-3 p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-all duration-300 group">
-              <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-blue-400' : index === 1 ? 'bg-green-400' : 'bg-purple-400'
-                } group-hover:scale-110 transition-transform`}></div>
-              <span className="text-gray-300 group-hover:text-white transition-colors">{member}</span>
-            </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {teamMembers.map((member, index) => (
+            <motion.a 
+              key={member.name}
+              href={member.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative p-4 md:p-6 rounded-xl bg-gray-700/30 overflow-hidden group border border-gray-700/50 flex items-center space-x-4 hover:border-blue-400 transition-colors duration-300"
+              whileHover={{ scale: 1.05, boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
+            >
+              {/* Efek Gradasi Bergerak */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                className={`absolute inset-0 w-full h-full opacity-0 blur-sm transition-all duration-500 z-0
+                  ${index === 0 ? 'bg-blue-400' : index === 1 ? 'bg-green-400' : 'bg-purple-400'}`}
+              />
+              
+              <div className="relative z-10 flex items-center space-x-4">
+                {/* Avatar */}
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg text-white
+                  ${index === 0 ? 'bg-blue-400' : index === 1 ? 'bg-green-400' : 'bg-purple-400'}`}
+                >
+                  {member.name.charAt(0)}
+                </div>
+                
+                {/* Info Anggota */}
+                <div className="flex-1">
+                  <p className="text-white font-semibold group-hover:text-yellow-400 transition-colors duration-300">
+                    {member.name}
+                  </p>
+                  <p className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
+                    {member.role}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Ikon GitHub */}
+              <div className="relative z-10 p-2 rounded-full bg-gray-600/50 group-hover:bg-gray-600/80 transition-colors duration-300">
+                <Github className="h-5 w-5 text-gray-300 group-hover:text-white" aria-label={`Profil GitHub ${member.name}`} />
+              </div>
+            </motion.a>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
