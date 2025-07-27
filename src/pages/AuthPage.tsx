@@ -29,13 +29,13 @@ const formVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring" as const, stiffness: 200, damping: 25 },
+    transition: { type: "spring", stiffness: 200, damping: 25 },
   },
   exit: {
     opacity: 0,
     y: -30,
     scale: 0.95,
-    transition: { duration: 0.4, ease: "easeInOut" as const },
+    transition: { duration: 0.4, ease: "easeInOut" },
   },
 };
 
@@ -47,8 +47,6 @@ type AnimatedInputProps = {
   placeholder?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   showToggle?: boolean;
   togglePasswordVisibility?: () => void;
   showPassword?: boolean;
@@ -62,20 +60,18 @@ const AnimatedInput = ({
   placeholder,
   value,
   onChange,
-  onFocus,
-  onBlur,
   showToggle,
   togglePasswordVisibility,
   showPassword,
 }: AnimatedInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+  const inputRef = useRef(null);
+
+  const handleFocus = () => {
     setIsFocused(true);
-    onFocus(e);
   };
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+  const handleBlur = () => {
     setIsFocused(false);
-    onBlur(e);
   };
 
   return (
@@ -92,6 +88,7 @@ const AnimatedInput = ({
           <Icon className="h-5 w-5" />
         </motion.div>
         <Input
+          ref={inputRef}
           id={id}
           type={showToggle && !showPassword ? "password" : type}
           placeholder={placeholder}
@@ -138,12 +135,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
 
   const logoRef = useRef(null);
-  const backgroundRef = useRef(null);
-  const cursorGlowRef = useRef(null);
   const containerRef = useRef(null);
-  const waveRef1 = useRef(null);
-  const waveRef2 = useRef(null);
-  const waveRef3 = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("users", JSON.stringify(users));
@@ -159,15 +151,23 @@ export default function AuthPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setMessage({ type: "", text: "" });
+
+    // Validasi sederhana
+    if (!loginForm.email || !loginForm.password) {
+      setMessage({ type: "error", text: "Please fill in all fields." });
+      return;
+    }
+
     const user = users.find(
       (u: any) => u.email === loginForm.email && u.password === loginForm.password,
     );
+
     if (user) {
       setMessage({ type: "success", text: `Login successful! Welcome, ${user.name}` });
       localStorage.setItem("session", JSON.stringify(user));
       setTimeout(() => navigate("/"), 1500);
     } else {
-      setMessage({ type: "error", text: "Invalid email or password" });
+      setMessage({ type: "error", text: "Invalid email or password." });
     }
   };
 
@@ -175,18 +175,21 @@ export default function AuthPage() {
     e.preventDefault();
     setMessage({ type: "", text: "" });
     const { name, email, password, confirmPassword } = registerForm;
+
+    // Validasi sederhana
     if (!name || !email || !password || !confirmPassword) {
-      setMessage({ type: "error", text: "Please fill all fields" });
+      setMessage({ type: "error", text: "Please fill in all fields." });
       return;
     }
     if (password !== confirmPassword) {
-      setMessage({ type: "error", text: "Passwords do not match" });
+      setMessage({ type: "error", text: "Passwords do not match." });
       return;
     }
     if (users.find((u: any) => u.email === email)) {
-      setMessage({ type: "error", text: "Email already registered" });
+      setMessage({ type: "error", text: "Email already registered." });
       return;
     }
+
     const newUser = { id: users.length + 1, name, email, password };
     setUsers([...users, newUser]);
     setMessage({
@@ -194,56 +197,14 @@ export default function AuthPage() {
       text: "Registration successful! You can now login.",
     });
     setRegisterForm({ name: "", email: "", password: "", confirmPassword: "" });
+    setActiveTab("login"); // Pindah ke tab login setelah registrasi berhasil
   };
-  
-  // Fungsi handleInputFocus dan handleInputBlur sekarang kosong
-  const handleInputFocus = () => {};
-  const handleInputBlur = () => {};
 
+  // Efek GSAP untuk logo dan form saat mounting
   useEffect(() => {
     setMounted(true);
 
-    // Animasi gelombang dengan GSAP
-    const waveAnimation = (ref: gsap.TweenTarget, duration: number, delay: number) => {
-      gsap.to(ref, {
-        duration: duration,
-        scaleX: 1.1,
-        scaleY: 1.1,
-        x: "random(-100, 100)",
-        y: "random(-100, 100)",
-        rotation: "random(0, 360)",
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-        delay: delay,
-      });
-    };
-
-    waveAnimation(waveRef1.current, 15, 0);
-    waveAnimation(waveRef2.current, 18, 5);
-    waveAnimation(waveRef3.current, 20, 10);
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (cursorGlowRef.current) {
-        gsap.to(cursorGlowRef.current, {
-          left: e.clientX,
-          top: e.clientY,
-          duration: 1.2,
-          ease: "power4.out",
-        });
-      }
-    };
-    document.addEventListener("mousemove", handleMouseMove);
-
-    gsap.to(backgroundRef.current, {
-      duration: 50,
-      backgroundPosition: "100% 100%",
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-
-    const logoTimeline = gsap.timeline();
+    const logoTimeline = gsap.timeline({ defaults: { ease: "power3.out" } });
     logoTimeline
       .from(logoRef.current, {
         y: -100,
@@ -251,14 +212,12 @@ export default function AuthPage() {
         scale: 0.5,
         rotation: -180,
         duration: 2,
-        ease: "elastic.out(1, 0.3)",
       })
       .to(
         logoRef.current,
         {
           textShadow: "0 0 20px #a78bfa, 0 0 40px #7f5af0, 0 0 60px #c4b5fd",
           duration: 0.8,
-          ease: "power2.out",
         },
         "-=1",
       );
@@ -269,12 +228,7 @@ export default function AuthPage() {
       scale: 0.9,
       duration: 1.5,
       delay: 1,
-      ease: "power3.out",
     });
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
   }, []);
 
   const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -298,64 +252,23 @@ export default function AuthPage() {
   if (!mounted) return null;
 
   return (
-    <div
-      ref={backgroundRef}
-      className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1a1440] via-[#7f5af0] via-60% to-[#23235a] bg-[length:200%_200%] relative overflow-hidden"
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#1a1440] via-[#7f5af0] via-60% to-[#23235a] bg-[length:200%_200%] relative overflow-hidden">
       <style>{`
         @keyframes glowing-border {
           0% { box-shadow: 0 0 5px #a78bfa; }
           50% { box-shadow: 0 0 20px #7f5af0, 0 0 30px #c4b5fd; }
           100% { box-shadow: 0 0 5px #a78bfa; }
         }
-        .btn-glow {
-          position: relative;
-          z-index: 10;
-          transition: all 0.3s ease-out;
-        }
         .btn-glow:hover {
           animation: glowing-border 1.5s infinite ease-in-out;
         }
-        .wave-background {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.3;
-          z-index: 0;
-        }
       `}</style>
-
-      {/* Glow Kursor yang melayang */}
-      <div
-        ref={cursorGlowRef}
-        className="fixed w-96 h-96 pointer-events-none z-50 mix-blend-screen"
-        style={{
-          background: "radial-gradient(circle, rgba(127,90,240,0.18) 0%, rgba(167,139,250,0.12) 30%, transparent 70%)",
-          transform: "translate(-50%, -50%)",
-          filter: "blur(32px)",
-          left: 0,
-          top: 0,
-        }}
-      />
-
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Animasi Latar Belakang Gelombang Modern */}
-        <div
-          ref={waveRef1}
-          className="wave-background w-[600px] h-[600px] bg-gradient-to-br from-[#a78bfa] to-[#7f5af0]"
-          style={{ top: "10%", left: "15%" }}
-        />
-        <div
-          ref={waveRef2}
-          className="wave-background w-[700px] h-[700px] bg-gradient-to-br from-[#7f5af0] to-[#c4b5fd]"
-          style={{ bottom: "10%", right: "20%" }}
-        />
-        <div
-          ref={waveRef3}
-          className="wave-background w-[500px] h-[500px] bg-gradient-to-br from-[#c4b5fd] to-[#a78bfa]"
-          style={{ top: "50%", left: "70%" }}
-        />
-      </div>
+      
+      {/* Background statis */}
+      <div className="fixed inset-0 z-0 opacity-40" style={{
+        background: 'radial-gradient(circle at 10% 15%, #a78bfa 0%, transparent 40%), radial-gradient(circle at 80% 90%, #7f5af0 0%, transparent 50%), radial-gradient(circle at 60% 40%, #c4b5fd 0%, transparent 60%)',
+        filter: 'blur(100px)'
+      }} />
 
       <div ref={containerRef} className="w-full max-w-md z-10 relative">
         <div className="flex justify-center mb-8">
@@ -390,15 +303,15 @@ export default function AuthPage() {
             </TabsList>
 
             <AnimatePresence mode="wait">
-              {activeTab === "login" ? (
+              <TabsContent value={activeTab} forceMount className="mt-0">
                 <motion.div
-                  key="login-form"
+                  key={activeTab}
                   variants={formVariants}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
                 >
-                  <TabsContent value="login" forceMount className="mt-0">
+                  {activeTab === "login" ? (
                     <form className="space-y-6" onSubmit={handleLogin}>
                       {message.text && (
                         <motion.div
@@ -419,8 +332,6 @@ export default function AuthPage() {
                         placeholder="your@email.com"
                         value={loginForm.email}
                         onChange={handleLoginChange}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
                       />
 
                       <div className="space-y-3">
@@ -442,8 +353,6 @@ export default function AuthPage() {
                           placeholder="••••••••"
                           value={loginForm.password}
                           onChange={handleLoginChange}
-                          onFocus={handleInputFocus}
-                          onBlur={handleInputBlur}
                           showToggle={true}
                           showPassword={showPassword}
                           togglePasswordVisibility={() => setShowPassword(!showPassword)}
@@ -459,17 +368,7 @@ export default function AuthPage() {
                         Sign In
                       </Button>
                     </form>
-                  </TabsContent>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="register-form"
-                  variants={formVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                  <TabsContent value="register" forceMount className="mt-0">
+                  ) : (
                     <form className="space-y-6" onSubmit={handleRegister}>
                       {message.text && (
                         <motion.div
@@ -489,8 +388,6 @@ export default function AuthPage() {
                         placeholder="John Doe"
                         value={registerForm.name}
                         onChange={handleRegisterChange}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
                       />
                       <AnimatedInput
                         id="email"
@@ -500,8 +397,6 @@ export default function AuthPage() {
                         placeholder="your@email.com"
                         value={registerForm.email}
                         onChange={handleRegisterChange}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
                       />
                       <AnimatedInput
                         id="password"
@@ -510,8 +405,6 @@ export default function AuthPage() {
                         placeholder="••••••••"
                         value={registerForm.password}
                         onChange={handleRegisterChange}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
                         showToggle={true}
                         showPassword={showPassword}
                         togglePasswordVisibility={() => setShowPassword(!showPassword)}
@@ -523,8 +416,6 @@ export default function AuthPage() {
                         placeholder="••••••••"
                         value={registerForm.confirmPassword}
                         onChange={handleRegisterChange}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
                         showToggle={true}
                         showPassword={showConfirmPassword}
                         togglePasswordVisibility={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -539,18 +430,18 @@ export default function AuthPage() {
                       </Button>
                       <p className="text-xs text-center text-white/60 mt-6 leading-relaxed">
                         By registering, you agree to our{" "}
-                        <button className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
+                        <button type="button" className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
                           Terms of Service
                         </button>{" "}
                         and{" "}
-                        <button className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
+                        <button type="button" className="text-[#a78bfa] hover:text-[#c4b5fd] hover:underline transition-colors duration-200">
                           Privacy Policy
                         </button>
                       </p>
                     </form>
-                  </TabsContent>
+                  )}
                 </motion.div>
-              )}
+              </TabsContent>
             </AnimatePresence>
           </Tabs>
         </div>
