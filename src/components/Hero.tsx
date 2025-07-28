@@ -28,8 +28,8 @@ const itemVariants = {
 
 const Hero: React.FC = () => {
   return (
-    // Menggunakan div ini untuk memastikan konten tetap di tengah dan menambahkan padding
-    <div className="relative z-20 w-full text-center px-4 py-16 md:py-32">
+    // Mengurangi padding atas (py-16 -> pt-8 md:pt-16) untuk memberikan lebih banyak ruang di bawah
+    <div className="relative z-20 w-full text-center px-4 pt-8 md:pt-16 pb-16 md:pb-32">
       <motion.section
         className="flex flex-col items-center justify-center text-white"
         variants={containerVariants}
@@ -58,21 +58,6 @@ const Hero: React.FC = () => {
             "Empowering your data-driven decisions."
           </span>
         </motion.p>
-
-        {/* --- Tombol Call to Action (CTA) --- */}
-        <motion.div variants={itemVariants}>
-          <motion.button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300"
-            whileHover={{ 
-              scale: 1.1, 
-              boxShadow: "0 8px 20px rgba(59, 130, 246, 0.4)",
-              transition: { duration: 0.3 }
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Get Started
-          </motion.button>
-        </motion.div>
       </motion.section>
     </div>
   );
