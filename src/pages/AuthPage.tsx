@@ -287,16 +287,16 @@ export default function AuthPage() {
             onValueChange={setActiveTab}
             className="w-full relative z-10"
           >
-            <TabsList className="flex w-full mb-10 bg-[#23235a]/80 border border-[#a78bfa]/20 rounded-2xl overflow-hidden gap-4 p-2 transition-all duration-300 shadow-lg">
+            <TabsList className="flex w-full mb-10 bg-[#23235a]/80 border border-[#a78bfa]/20 rounded-2xl overflow-hidden transition-all duration-300 shadow-lg">
               <TabsTrigger
                 value="login"
-                className="flex-1 text-lg py-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#a78bfa] data-[state=active]:to-[#7f5af0] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:scale-105 transition-all duration-300 font-semibold tracking-wide"
+                className="flex-1 text-lg py-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#a78bfa] data-[state=active]:to-[#7f5af0] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:scale-x-105 transition-all duration-300 font-semibold tracking-wide"
               >
                 Login
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="flex-1 text-lg py-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#a78bfa] data-[state=active]:to-[#7f5af0] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:scale-105 transition-all duration-300 font-semibold tracking-wide"
+                className="flex-1 text-lg py-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#a78bfa] data-[state=active]:to-[#7f5af0] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:scale-x-105 transition-all duration-300 font-semibold tracking-wide"
               >
                 Register
               </TabsTrigger>
