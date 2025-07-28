@@ -1,17 +1,32 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { UploadedFile } from '../../types/file';
 import { BarChart3, FileText, Database } from 'lucide-react';
 import CSVLineChart from './LineCSV';
 import TablePreview from './TablePreview';
 import { motion } from 'framer-motion';
+import axios from '../../api/axios';
 
 interface FilePreviewProps {
     uploadedFile: UploadedFile;
     formatFileSize: (bytes: number) => string;
 }
 
+interface BackendResponse {
+    dates: string[];
+    predictions: number[];
+}
+
+interface ChartPoint {
+    x: string;
+    y: number;
+}
+
 const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize }) => {
-    const chartData = useMemo(() => {
+    const [predictionData, setPredictionData] = useState<ChartPoint[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const originalChartData = useMemo(() => {
         try {
             const lines = uploadedFile.content.split('\n').filter(line => line.trim());
             if (lines.length < 2) return [];
@@ -31,6 +46,42 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
         }
     }, [uploadedFile.content]);
 
+    useEffect(() => {
+        const sendToBackend = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const formData = new FormData();
+                const blob = new Blob([uploadedFile.content], { type: 'text/csv' });
+                formData.append('file', blob, uploadedFile.name);
+
+                const response = await axios.post<BackendResponse>('/predict', formData);
+                const { dates, predictions } = response.data;
+
+                if (dates.length !== predictions.length) {
+                    throw new Error('Invalid prediction response structure');
+                }
+
+                const formatted: ChartPoint[] = dates.map((date: any, index: string | number) => ({
+                    x: date,
+                    y: predictions[index],
+                }));
+
+                setPredictionData(formatted);
+            } catch (err) {
+                console.error('Prediction failed:', err);
+                setError('Failed to generate prediction.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (uploadedFile) {
+            sendToBackend();
+        }
+    }, [uploadedFile]);
+
+    const chartData = predictionData.length > 0 ? predictionData : originalChartData;
     const xValues = chartData.map(d => d?.x);
     const yValues = chartData.map(d => d?.y);
 
@@ -103,10 +154,14 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
                     >
                         <h3 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                             <BarChart3 className="h-6 w-6 text-blue-300" />
-                            <span>Data Trend</span>
+                            <span>{predictionData.length > 0 ? 'Prediction Trend' : 'Data Trend'}</span>
                         </h3>
                         <div className="w-full h-full flex items-center justify-center">
-                            {chartData.length > 0 ? (
+                            {loading ? (
+                                <p className="text-white">Loading prediction...</p>
+                            ) : error ? (
+                                <p className="text-red-400">{error}</p>
+                            ) : chartData.length > 0 ? (
                                 <CSVLineChart xValues={xValues} yValues={yValues} />
                             ) : (
                                 <div className="text-gray-500 text-center">

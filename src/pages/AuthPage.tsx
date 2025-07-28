@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { Button } from "../components/ui/button";
@@ -296,7 +294,7 @@ export default function AuthPage() {
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="flex-1 text-lg py-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#a78bfa] data-[state=active]:to-[#7f5af0] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:scale-x-105 transition-all duration-300 font-semibold tracking-wide"
+                className="flex-1 text-lg py-4 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#a78bfa] data-[state=active]:to-[#7f5af0] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:scale-x-105git transition-all duration-300 font-semibold tracking-wide"
               >
                 Register
               </TabsTrigger>
