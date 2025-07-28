@@ -50,10 +50,10 @@ const Footer: React.FC = () => {
               </span>
             </div>
             <p className="text-sm max-w-xs">
-              Satu langkah di depan untuk masa depan digital.
+              One step ahead for the digital future.
             </p>
             <div className="flex items-center space-x-2 text-sm text-gray-500 mt-4">
-              <span className="inline-block">Dibuat dengan</span>
+              <span className="inline-block">Made with</span>
               <motion.div
                 initial={{ scale: 1 }}
                 whileHover={{ scale: 1.4, rotate: 15 }} // Stronger bounce and rotate
@@ -61,21 +61,21 @@ const Footer: React.FC = () => {
               >
                 <Heart className="h-4 w-4 text-red-400" />
               </motion.div>
-              <span>dan kopi.</span>
+              <span>and coffee.</span>
             </div>
           </motion.div>
 
           {/* Kolom 2: Tautan Navigasi */}
           <motion.div className="flex flex-col space-y-3" variants={itemVariants}>
-            <h3 className="font-semibold text-white mb-2">Produk</h3>
+            <h3 className="font-semibold text-white mb-2">Product</h3>
             <a href="/features" className="text-sm hover:text-white transition-all duration-300 transform hover:translate-x-1">
-              Fitur
+              Features
             </a>
             <a href="/pricing" className="text-sm hover:text-white transition-all duration-300 transform hover:translate-x-1">
-              Harga
+              Pricing
             </a>
             <a href="/documentation" className="text-sm hover:text-white transition-all duration-300 transform hover:translate-x-1">
-              Dokumentasi
+              Documentation
             </a>
           </motion.div>
 
@@ -83,19 +83,19 @@ const Footer: React.FC = () => {
           <motion.div className="flex flex-col space-y-3" variants={itemVariants}>
             <h3 className="font-semibold text-white mb-2">Predict</h3>
             <a href="/about" className="text-sm hover:text-white transition-all duration-300 transform hover:translate-x-1">
-              Tentang Kami
+              About Us
             </a>
             <a href="/blog" className="text-sm hover:text-white transition-all duration-300 transform hover:translate-x-1">
               Blog
             </a>
             <a href="/contact" className="text-sm hover:text-white transition-all duration-300 transform hover:translate-x-1">
-              Kontak
+              Contact
             </a>
           </motion.div>
 
           {/* Kolom 4: Media Sosial & Hak Cipta */}
           <motion.div className="flex flex-col space-y-4 lg:text-right" variants={itemVariants}>
-            <h3 className="font-semibold text-white mb-2 lg:ml-auto">Ikuti Kami</h3>
+            <h3 className="font-semibold text-white mb-2 lg:ml-auto">Follow Us</h3>
             <div className="flex justify-start lg:justify-end items-center space-x-4">
               <motion.a
                 href="#"
@@ -126,7 +126,7 @@ const Footer: React.FC = () => {
                   className="flex items-center space-x-1 text-gray-500 hover:text-white transition-colors duration-300 group"
                   aria-label="Powered by Vite"
                 >
-                  <span>Didukung oleh</span>
+                  <span>Powered by</span>
                   <Zap 
                     className="h-4 w-4 text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300" 
                     aria-hidden="true"

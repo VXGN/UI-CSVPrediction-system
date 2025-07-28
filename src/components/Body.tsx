@@ -91,7 +91,15 @@ const Body: React.FC = () => {
               <h3 className="text-lg font-semibold text-white group-hover:text-yellow-400 transition-colors duration-300">About</h3>
             </div>
             <p className="text-gray-300 leading-relaxed text-justify">
-              A powerful CSV file prediction system using Python and TensorFlow's LSTM neural networks as the main engine. Simply drag and drop your CSV file containing X and Y columns (minimum 30, maximum 100 data points) to get instant machine learning predictions. The system automatically processes your data through advanced LSTM models to detect patterns and generate accurate forecasts, displaying results in interactive charts with real-time visualization of both original data and AI-generated predictions.
+              A powerful CSV file prediction system using Python and TensorFlow's LSTM neural networks as the main engine. Simply drag and drop your CSV file containing X and Y columns (minimum 30, maximum 100 data points) to get instant machine learning predictions. The system automatically processes your data through advanced LSTM models to detect patterns and generate accurate forecasts, displaying results in interactive charts with real-time visualization of both original data and AI-generated predictions.{' '}
+              <a 
+                href="/src/assets/dummy/data_dummy.csv" 
+                download="data_dummy.csv"
+                className="text-blue-400 hover:text-blue-300 underline transition-colors duration-300 font-medium"
+              >
+                [data_dummy.csv]
+              </a>{' '}
+              here.
             </p>
           </motion.div>
 

@@ -11,7 +11,7 @@ import { ThemeProvider } from './components/theme-provider';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-slate-900 to-black animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-b from-slate-700 via-slate-900 to-black animate-fade-in">
       <Header />
       <main className="pt-40 min-h-screen flex flex-col items-center justify-center px-16 py-22 ">
         {children}
