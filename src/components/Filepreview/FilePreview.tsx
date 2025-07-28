@@ -62,7 +62,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
                     throw new Error('Invalid prediction response structure');
                 }
 
-                const formatted: ChartPoint[] = dates.map((date: any, index: string | number) => ({
+                const formatted: ChartPoint[] = dates.map((date: string, index: number) => ({
                     x: date,
                     y: predictions[index],
                 }));
@@ -82,12 +82,24 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
     }, [uploadedFile]);
 
     const chartData = predictionData.length > 0 ? predictionData : originalChartData;
-    const xValues = chartData.map(d => d?.x);
-    const yValues = chartData.map(d => d?.y);
+    // Filter out undefined values for type safety
+    const filteredOriginalChartData: ChartPoint[] = originalChartData.filter((d): d is ChartPoint => d !== undefined);
+    const filteredPredictionData: ChartPoint[] = predictionData.filter((d): d is ChartPoint => d !== undefined);
+
+    // Build combined x-axis: original x's + predicted x's that are not in original
+    const originalXSet = new Set(filteredOriginalChartData.map(d => d.x));
+    const predictedXNotInOriginal = filteredPredictionData.map(d => d.x).filter(x => !originalXSet.has(x));
+    const combinedX = [...filteredOriginalChartData.map(d => d.x), ...predictedXNotInOriginal];
+
+    // Build y-values for both series, aligned to combinedX
+    const originalYMap = new Map(filteredOriginalChartData.map(d => [d.x, d.y]));
+    const predictedYMap = new Map(filteredPredictionData.map(d => [d.x, d.y]));
+    const originalYAligned = combinedX.map(x => originalYMap.has(x) ? originalYMap.get(x) : null);
+    const predictedYAligned = combinedX.map(x => predictedYMap.has(x) ? predictedYMap.get(x) : null);
 
     const containerVariants = {
         hidden: { opacity: 0, scale: 0.95 },
-        visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+        visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' as const } },
     };
 
     const itemVariants = {
@@ -146,7 +158,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
                         </motion.div>
                     </motion.div>
 
-                    {/* Bagian Grafik yang Diperbesar dan Lebih Vertikal */}
+                    {/* Bagian Grafik */}
                     <motion.div
                         variants={itemVariants}
                         transition={{ delay: 0.6 }}
@@ -161,17 +173,21 @@ const FilePreview: React.FC<FilePreviewProps> = ({ uploadedFile, formatFileSize 
                                 <p className="text-white">Loading prediction...</p>
                             ) : error ? (
                                 <p className="text-red-400">{error}</p>
-                            ) : chartData.length > 0 ? (
-                                <CSVLineChart xValues={xValues} yValues={yValues} />
+                            ) : originalChartData.length > 0 ? (
+                                <CSVLineChart
+                                    xValues={combinedX}
+                                    originalYValues={originalYAligned}
+                                    predictedYValues={predictedYAligned}
+                                />
                             ) : (
                                 <div className="text-gray-500 text-center">
-                                    Tidak ada data numerik yang cukup untuk membuat grafik.
+                                    Not enough numeric data to predict.
                                 </div>
                             )}
                         </div>
                     </motion.div>
 
-                    {/* Bagian Tabel Pratinjau */}
+                    {/* Bagian Tabel */}
                     <motion.div
                         variants={itemVariants}
                         transition={{ delay: 0.8 }}

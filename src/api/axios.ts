@@ -12,7 +12,7 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// Fungsi untuk upload file CSV
+// Fungsi upload file CSV
 export const predict = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);

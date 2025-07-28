@@ -23,6 +23,34 @@ const iconVariants = {
   hover: { scale: 1.1, rotate: 10, transition: { type: "spring", stiffness: 400 } },
 };
 
+const features = [
+ {
+   id: 1,
+   color: "bg-blue-400",
+   text: "Drag and drop your CSV file or click to browse"
+ },
+ {
+   id: 2,
+   color: "bg-amber-400",
+   text: "Ensure CSV has exactly 2 columns (X,Y) with only 1 comma per row"
+ },
+ {
+   id: 3,
+   color: "bg-red-400",
+   text: "⚠️ Maximum 100 rows, minimum 30 rows for optimal predictions"
+ },
+ {
+   id: 4,
+   color: "bg-green-400",
+   text: "Preview your data instantly with automatic validation"
+ },
+ {
+   id: 5,
+   color: "bg-purple-400",
+   text: "Analyze file statistics and content structure"
+ },
+];
+
 const Body: React.FC = () => {
   return (
     <div className="relative overflow-hidden min-h-screen">
@@ -42,7 +70,7 @@ const Body: React.FC = () => {
           backgroundSize: '200% 200%',
         }}
       />
-      
+
       <div className="relative z-10 space-y-9 px-4 py-8 md:px-8 lg:px-12">
         {/* Description & Help Section */}
         <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
@@ -62,8 +90,8 @@ const Body: React.FC = () => {
               </motion.div>
               <h3 className="text-lg font-semibold text-white group-hover:text-yellow-400 transition-colors duration-300">About</h3>
             </div>
-            <p className="text-gray-300 leading-relaxed">
-              A powerful CSV file System prediction using python and tensorflow as the main engine
+            <p className="text-gray-300 leading-relaxed text-justify">
+              A powerful CSV file prediction system using Python and TensorFlow's LSTM neural networks as the main engine. Simply drag and drop your CSV file containing X and Y columns (minimum 30, maximum 100 data points) to get instant machine learning predictions. The system automatically processes your data through advanced LSTM models to detect patterns and generate accurate forecasts, displaying results in interactive charts with real-time visualization of both original data and AI-generated predictions.
             </p>
           </motion.div>
 
@@ -84,22 +112,16 @@ const Body: React.FC = () => {
               <h3 className="text-lg font-semibold text-white group-hover:text-yellow-400 transition-colors duration-300">How to Use</h3>
             </div>
             <ul className="space-y-2 text-gray-300">
-              <li className="flex items-start space-x-2 group hover:text-white transition-colors duration-300">
-                <span className="w-2.5 h-2.5 bg-blue-400 rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-150"></span>
-                <span>Drag and drop your CSV file or click to browse</span>
-              </li>
-              <li className="flex items-start space-x-2 group hover:text-white transition-colors duration-300">
-                <span className="w-2.5 h-2.5 bg-green-400 rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-150"></span>
-                <span>Preview your data instantly</span>
-              </li>
-              <li className="flex items-start space-x-2 group hover:text-white transition-colors duration-300">
-                <span className="w-2.5 h-2.5 bg-purple-400 rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-150"></span>
-                <span>Analyze file statistics and content</span>
-              </li>
+              {features.map((feature) => (
+                <li key={feature.id} className="flex items-start space-x-2 group hover:text-white transition-colors duration-300">
+                  <span className={`w-2.5 h-2.5 ${feature.color} rounded-full mt-2 flex-shrink-0 transition-transform duration-300 group-hover:scale-150`}></span>
+                  <span>{feature.text}</span>
+                </li>
+              ))}
             </ul>
           </motion.div>
         </div>
-        
+
         {/* Our Team Section */}
         <motion.div
           className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl"
@@ -116,18 +138,18 @@ const Body: React.FC = () => {
             </motion.div>
             <h3 className="text-lg font-semibold text-white">Our Team</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {teamMembers.map((member, index) => (
-              <motion.a 
+              <motion.a
                 key={member.name}
                 href={member.github}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative p-4 md:p-6 rounded-xl bg-gray-700/30 overflow-hidden group border border-gray-700/50 flex items-center space-x-4 transition-all duration-300 transform-gpu hover:border-blue-400"
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateX: 5, // Subtle 3D effect on hover
+                whileHover={{
+                  scale: 1.05,
+                  rotateX: 15, // Subtle 3D effect on hover
                   boxShadow: "0 10px 20px rgba(0,0,0,0.3), 0 0 15px rgba(59, 130, 246, 0.5)", // Add a blue glow
                   transition: { duration: 0.3 }
                 }}
@@ -140,14 +162,14 @@ const Body: React.FC = () => {
                   className={`absolute inset-0 w-full h-full opacity-0 blur-sm transition-all duration-500 z-0
                     ${index === 0 ? 'bg-blue-400' : index === 1 ? 'bg-green-400' : 'bg-purple-400'}`}
                 />
-                
+
                 <div className="relative z-10 flex items-center space-x-4">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg text-white
                     ${index === 0 ? 'bg-blue-400' : index === 1 ? 'bg-green-400' : 'bg-purple-400'}`}
                   >
                     {member.name.charAt(0)}
                   </div>
-                  
+
                   <div className="flex-1">
                     <p className="text-white font-semibold group-hover:text-yellow-400 transition-colors duration-300">
                       {member.name}
@@ -157,7 +179,7 @@ const Body: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="relative z-10 p-2 rounded-full bg-gray-600/50 group-hover:bg-gray-600/80 transition-colors duration-300">
                   <Github className="h-5 w-5 text-gray-300 group-hover:text-white" aria-label={`Profil GitHub ${member.name}`} />
                 </div>

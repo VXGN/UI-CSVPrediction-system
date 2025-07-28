@@ -70,7 +70,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
             animate="animate"
             exit="exit"
         >
-            <div className="bg-gradient-to-br from-gray-950 to-black backdrop-blur-sm rounded-3xl p-10 lg:p-16 border border-gray-800/80 shadow-3xl text-gray-200">
+            <div className="bg-gradient-to-br  from-gray-900/70 to-black/70 backdrop-blur-lg rounded-3xl p-10 lg:p-16 border border-gray-800/80 shadow-3xl text-gray-200">
                 <h2 className="text-4xl font-extrabold mb-8 text-center text-white tracking-tight">
                     Upload Your CSV File
                 </h2>

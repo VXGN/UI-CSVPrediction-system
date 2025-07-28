@@ -7,7 +7,8 @@ import { Typography } from '@mui/material';
 // Definisi props untuk komponen, menambahkan label dan judul opsional
 interface CSVLineChartProps {
   xValues: (string | number)[];
-  yValues: number[];
+  originalYValues: (number | null)[];
+  predictedYValues?: (number | null)[];
   title?: string;
   xLabel?: string;
   yLabel?: string;
@@ -30,7 +31,7 @@ const ChartContainer = styled(motion.div)(({ theme }) => ({
 }));
 
 // Komponen utama
-const CSVLineChart: React.FC<CSVLineChartProps> = ({ xValues, yValues, title, xLabel, yLabel }) => {
+const CSVLineChart: React.FC<CSVLineChartProps> = ({ xValues, originalYValues, predictedYValues, title, xLabel, yLabel }) => {
   const chartHeight = 350;
 
   return (
@@ -40,39 +41,47 @@ const CSVLineChart: React.FC<CSVLineChartProps> = ({ xValues, yValues, title, xL
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       {title && (
-        <Typography 
-          variant="h6" 
-          align="center" 
-          color="white" 
-          gutterBottom 
+        <Typography
+          variant="h6"
+          align="center"
+          color="#ffffff"
+          gutterBottom
           sx={{ fontWeight: 600, mb: 2 }}
         >
           {title}
         </Typography>
       )}
-      
       <LineChart
         xAxis={[{
           data: xValues,
           scaleType: 'band',
-          label: xLabel,
-          tickLabelStyle: { fill: 'white' },
-          labelStyle: { fill: 'white', fontWeight: 'bold' },
+          label: yLabel,
+          tickLabelStyle: { fill: '#ffffff' },
+          labelStyle: { fill: '#ffffff', fontWeight: 'bold' },
         }]}
         yAxis={[{
           label: yLabel,
-          tickLabelStyle: { fill: 'white' },
-          labelStyle: { fill: 'white', fontWeight: 'bold' },
+          tickLabelStyle: { fill: '#ffffff' },
+          labelStyle: { fill: '#ffffff', fontWeight: 'bold' },
         }]}
-        series={[{
-          data: yValues,
-          curve: 'catmullRom',
-          area: true,
-          color: '#3498db',
-          animationDuration: 1200,
-          animationEasing: 'easeInOutQuart',
-          showMark: true, // Menampilkan titik data secara default
-        }]}
+        series={[
+          {
+            data: originalYValues,
+            curve: 'catmullRom',
+            area: true,
+            color: '#3498db', // Blue for init
+            animationDuration: 1200,
+            animationEasing: 'easeInOutQuart',
+          },
+          predictedYValues && predictedYValues.some(y => y !== null && y !== undefined) ? {
+            data: predictedYValues,
+            curve: 'catmullRom',
+            area: false,
+            color: '#ff9800', // Orange for predicted
+            animationDuration: 1200,
+            animationEasing: 'easeInOutQuart',
+          } : undefined,
+        ].filter(Boolean)}
         grid={{ horizontal: true }}
         height={chartHeight}
         margin={{ top: 30, right: 30, bottom: 40, left: 60 }}

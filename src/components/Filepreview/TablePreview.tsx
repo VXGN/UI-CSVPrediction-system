@@ -42,6 +42,7 @@ const cleanedAnalysis = {
 // ---
 // Komponen Data Summary yang lebih dinamis
 // ---
+
 const DataSummary = ({ analysis }) => (
     <motion.div
         initial={{ opacity: 0, x: -20 }}
@@ -128,6 +129,12 @@ const AIChatbot = ({ onAnalysisComplete }) => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
 
+    // useEffect(() => {
+    //     if (isUserNearBottom()) {
+    //         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    //     }
+    // }, [messages, isTyping]);
+
     const processBotMessage = (text: string, actions?: { label: string; action: string }[]) => {
         setIsTyping(true);
         setTimeout(() => {
@@ -144,8 +151,8 @@ const AIChatbot = ({ onAnalysisComplete }) => {
                 `Melakukan analisis data otomatis...`
             );
             setTimeout(() => {
-                const initialMessage = `Analisis awal selesai. Saya mendeteksi **${dummyAnalysis.missingRows}** baris data yang hilang dan akurasi prediksi awal sebesar **${(dummyAnalysis.accuracyScore * 100).toFixed(1)}%**.`;
-                const followUpMessage = `Saya juga menemukan bahwa kolom **'${Object.keys(dummyAnalysis.dataTypes).find(key => dummyAnalysis.dataTypes[key] === 'Categorical')}'** memiliki distribusi yang signifikan.`;
+                const initialMessage = `Analisis awal selesai. Saya mendeteksi ${dummyAnalysis.missingRows} baris data yang hilang dan akurasi prediksi awal sebesar ${(dummyAnalysis.accuracyScore * 100).toFixed(1)}%.`;
+                const followUpMessage = `Saya juga menemukan bahwa kolom '${Object.keys(dummyAnalysis.dataTypes).find(key => dummyAnalysis.dataTypes[key] === 'Categorical')}' memiliki distribusi yang signifikan.`;
                 processBotMessage(
                     `${initialMessage}<br/><br/>${followUpMessage}`,
                     [
@@ -155,7 +162,7 @@ const AIChatbot = ({ onAnalysisComplete }) => {
                 );
             }, 3000);
         } else if (action === 'show_prediction_summary') {
-            const predictionSummary = `Prediksi berhasil dilakukan menggunakan model **${dummyAnalysis.predictionModel}**.
+            const predictionSummary = `Prediksi berhasil dilakukan menggunakan model ${dummyAnalysis.predictionModel}.
             <br/><br/>Berikut adalah contoh hasil prediksi:
             <ul class="list-disc list-inside mt-2 space-y-1 text-gray-300">
                 ${dummyAnalysis.predictedValues
@@ -168,7 +175,7 @@ const AIChatbot = ({ onAnalysisComplete }) => {
             ]);
         } else if (action === 'ask_missing_data') {
             processBotMessage(
-                `Untuk mengatasi data yang hilang, Anda bisa mencoba metode imputasi. Misalnya, mengisi nilai kosong dengan **rata-rata** atau **median** dari kolom tersebut. Opsi lain adalah menghapus baris yang memiliki terlalu banyak nilai kosong.`,
+                `Untuk mengatasi data yang hilang, Anda bisa mencoba metode imputasi. Misalnya, mengisi nilai kosong dengan rata-rata atau median dari kolom tersebut. Opsi lain adalah menghapus baris yang memiliki terlalu banyak nilai kosong.`,
                 [
                     { label: 'Coba pembersihan data', action: 'clean_data' },
                     { label: 'Lanjutkan ke ringkasan prediksi', action: 'show_prediction_summary' },
@@ -187,7 +194,7 @@ const AIChatbot = ({ onAnalysisComplete }) => {
             setTimeout(() => {
                 processBotMessage(
                     `Pembersihan data selesai. Kami mengisi nilai yang hilang dan menghapus outlier.
-                    <br/><br/>Baris data yang hilang sekarang menjadi **${cleanedAnalysis.missingRows}**! Akurasi model Anda meningkat menjadi **${(cleanedAnalysis.accuracyScore * 100).toFixed(1)}%**.`,
+                    <br/><br/>Baris data yang hilang sekarang menjadi ${cleanedAnalysis.missingRows}! Akurasi model Anda meningkat menjadi ${(cleanedAnalysis.accuracyScore * 100).toFixed(1)}%.`,
                     [{ label: 'Hebat! Analisis ulang', action: 'start_analysis' }]
                 );
                 onAnalysisComplete(cleanedAnalysis);
@@ -295,7 +302,7 @@ const TablePreview: React.FC<TablePreviewProps> = ({ uploadedFile }) => {
     const { content } = uploadedFile;
     const rows = content ? content.split('\n') : [];
     const headers = rows.length > 0 ? rows[0]?.split(',') : [];
-    const previewRows = rows.slice(1, 6).filter(row => row.trim() !== '');
+    const previewRows = rows.slice(1, rows.length).filter(row => row.trim() !== '');
 
     const handleAnalysisComplete = (newAnalysis) => {
         setCurrentAnalysis(newAnalysis);
@@ -323,7 +330,7 @@ const TablePreview: React.FC<TablePreviewProps> = ({ uploadedFile }) => {
                     <span className="text-sm text-gray-400 font-medium">AI Assistant</span>
                 </motion.div>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto min-h-[350px]">
                 <DataSummary analysis={currentAnalysis} />
                 <AIChatbot onAnalysisComplete={handleAnalysisComplete} />

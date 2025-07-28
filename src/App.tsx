@@ -11,7 +11,7 @@ import { ThemeProvider } from './components/theme-provider';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-black animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-slate-900 to-black animate-fade-in">
       <Header />
       <main className="pt-40 min-h-screen flex flex-col items-center justify-center px-16 py-22 ">
         {children}
@@ -43,12 +43,6 @@ function AppRoutes() {
         <Hero />
         <div className="flex flex-col lg:flex-row items-start justify-center gap-8">
           <div className="flex flex-col items-center space-y-20 flex-1">
-            {uploadedFile && (
-              <FilePreview
-                uploadedFile={uploadedFile}
-                formatFileSize={formatFileSize}
-              />
-            )}
             <FileUpload
               dragActive={dragActive}
               uploadedFile={uploadedFile}
@@ -59,6 +53,13 @@ function AppRoutes() {
               onRemoveFile={removeFile}
               formatFileSize={formatFileSize}
             />
+            {uploadedFile && (
+              <FilePreview
+                uploadedFile={uploadedFile}
+                formatFileSize={formatFileSize}
+              />
+            )}
+
             {<Body />}
           </div>
         </div>
