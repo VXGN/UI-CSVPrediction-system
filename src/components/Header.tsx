@@ -12,13 +12,14 @@ import {
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Varian Framer Motion untuk animasi
+// Varian Framer Motion untuk animasi dropdown
 const dropdownVariants = {
   initial: { opacity: 0, y: -10 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
   exit: { opacity: 0, y: -10, transition: { duration: 0.2, ease: 'easeIn' } },
 };
 
+// Varian Framer Motion untuk animasi menu mobile
 const mobileMenuVariants = {
   initial: { x: '100%' },
   animate: { x: 0, transition: { type: 'tween', duration: 0.3, ease: 'easeOut' } },
@@ -53,12 +54,10 @@ const Header: React.FC = () => {
     };
   }, [isMenuOpen, isUserMenuOpen]);
 
-  // Fungsi untuk menutup menu pengguna
   const handleUserMenuToggle = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
 
-  // Fungsi untuk menutup menu mobile
   const handleMobileMenuToggle = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -80,16 +79,18 @@ const Header: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-              <Link to="/" className="flex items-center space-x-3 transition-transform duration-300 hover:scale-105 active:scale-95">
+              <Link to="/" className="flex items-center space-x-3 group transition-transform duration-300 hover:scale-105 active:scale-95">
                 <div className="relative">
-                  <TrendingUpIcon className="h-8 w-8 text-blue-400" />
+                  <TrendingUpIcon className="h-8 w-8 text-blue-400 group-hover:text-blue-300 transition-colors duration-200" />
                   <FileLineChart className="h-4 w-4 text-blue-400 absolute -top-1 animate-pulse" />
                 </div>
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-green-400">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-green-400 group-hover:from-blue-300 group-hover:to-green-300 transition-colors duration-200">
                     CSV Predict
                   </h1>
-                  <p className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide">Professional Data Prediction</p>
+                  <p className="hidden sm:block text-xs text-gray-400 font-medium tracking-wide group-hover:text-gray-300 transition-colors duration-200">
+                    Professional Data Prediction
+                  </p>
                 </div>
               </Link>
             </motion.div>
@@ -102,11 +103,12 @@ const Header: React.FC = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="relative p-2 rounded-full text-gray-400 hover:text-white transition-colors duration-200 hover:bg-gray-800"
+                    className="relative p-2 rounded-full text-gray-400 hover:text-white transition-colors duration-200 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
                     aria-label="Notifications"
                   >
                     <BellIcon className="h-6 w-6" />
-                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse-slow"></span>
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
                   </motion.button>
                   
                   <div className="relative">
@@ -115,10 +117,11 @@ const Header: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.3 }}
                       onClick={handleUserMenuToggle}
-                      className="flex items-center space-x-2 p-2 rounded-full text-gray-400 hover:text-white transition-colors duration-200 hover:bg-gray-800"
+                      className="flex items-center space-x-2 p-2 rounded-full text-gray-400 hover:text-white transition-colors duration-200 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
                       aria-label="User menu"
+                      aria-expanded={isUserMenuOpen}
                     >
-                      <UserCircleIcon className="h-8 w-8" />
+                      <UserCircleIcon className="h-8 w-8 text-blue-400 group-hover:text-blue-300" />
                       <span className="text-sm font-semibold hidden lg:block">Hi, {userName}</span>
                     </motion.button>
                     
@@ -130,6 +133,8 @@ const Header: React.FC = () => {
                           initial="initial"
                           animate="animate"
                           exit="exit"
+                          role="menu"
+                          aria-orientation="vertical"
                         >
                           <Link to="/dashboard" onClick={handleUserMenuToggle} className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors duration-200">
                             <LayoutDashboardIcon className="h-4 w-4 mr-2" /> Dashboard
@@ -193,7 +198,7 @@ const Header: React.FC = () => {
             animate="animate"
             exit="exit"
           >
-            <div className="flex justify-between items-center p-4 h-16">
+            <div className="flex justify-between items-center p-4 h-16 border-b border-gray-700/50">
               <h2 className="text-lg font-bold text-gray-300">Menu</h2>
               <button 
                 onClick={handleMobileMenuToggle}
@@ -203,25 +208,25 @@ const Header: React.FC = () => {
                 <XIcon className="h-6 w-6" />
               </button>
             </div>
-            <nav className="flex flex-col items-center space-y-8 mt-16 border-t border-gray-700/50 pt-8">
+            <nav className="flex flex-col items-center space-y-8 mt-16 px-4">
               {isLoggedIn ? (
                 <>
-                  <Link to="/dashboard" onClick={handleMobileMenuToggle} className="text-2xl font-bold text-white hover:text-blue-400 transition-colors duration-200">
+                  <Link to="/dashboard" onClick={handleMobileMenuToggle} className="text-3xl font-extrabold text-white hover:text-blue-400 transition-colors duration-200 w-full text-center py-4 rounded-md hover:bg-gray-800/50">
                     Dashboard
                   </Link>
-                  <Link to="/profile" onClick={handleMobileMenuToggle} className="text-2xl font-bold text-white hover:text-blue-400 transition-colors duration-200">
+                  <Link to="/profile" onClick={handleMobileMenuToggle} className="text-3xl font-extrabold text-white hover:text-blue-400 transition-colors duration-200 w-full text-center py-4 rounded-md hover:bg-gray-800/50">
                     Profile
                   </Link>
-                  <button onClick={() => { handleMobileMenuToggle(); setIsLoggedIn(false); }} className="text-2xl font-bold text-red-400 hover:text-red-300 transition-colors duration-200">
+                  <button onClick={() => { handleMobileMenuToggle(); setIsLoggedIn(false); }} className="text-3xl font-extrabold text-red-400 hover:text-red-300 transition-colors duration-200 w-full text-center py-4 rounded-md hover:bg-gray-800/50">
                     Logout
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/auth" onClick={handleMobileMenuToggle} className="text-2xl font-bold text-white hover:text-blue-400 transition-colors duration-200">
+                  <Link to="/auth" onClick={handleMobileMenuToggle} className="text-3xl font-extrabold text-white hover:text-blue-400 transition-colors duration-200 w-full text-center py-4 rounded-md hover:bg-gray-800/50">
                     Register
                   </Link>
-                  <Link to="/auth" onClick={handleMobileMenuToggle} className="text-2xl font-bold text-white hover:text-green-400 transition-colors duration-200">
+                  <Link to="/auth" onClick={handleMobileMenuToggle} className="text-3xl font-extrabold text-white hover:text-green-400 transition-colors duration-200 w-full text-center py-4 rounded-md hover:bg-gray-800/50">
                     Login
                   </Link>
                 </>
